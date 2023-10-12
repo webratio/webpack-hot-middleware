@@ -6,8 +6,6 @@ This module is **only** concerned with the mechanisms to connect a browser clien
 
 If you're using React then some common options are [react-transform-hmr](https://github.com/gaearon/react-transform-hmr/) and [react-hot-loader](https://github.com/gaearon/react-hot-loader).
 
-[![npm version](https://img.shields.io/npm/v/webpack-hot-middleware.svg)](https://www.npmjs.com/package/webpack-hot-middleware) [![CircleCI](https://circleci.com/gh/webpack-contrib/webpack-hot-middleware/tree/master.svg?style=svg)](https://circleci.com/gh/webpack-contrib/webpack-hot-middleware/tree/master)[![codecov](https://codecov.io/gh/webpack-contrib/webpack-hot-middleware/branch/master/graph/badge.svg)](https://codecov.io/gh/webpack-contrib/webpack-hot-middleware)![MIT Licensed](https://img.shields.io/npm/l/webpack-hot-middleware.svg)
-
 ## Installation & Usage
 
 See [example/](./example/) for an example of usage.
@@ -15,7 +13,7 @@ See [example/](./example/) for an example of usage.
 First, install the npm module.
 
 ```sh
-npm install --save-dev webpack-hot-middleware
+npm install --save-dev @wrtools/webpack-hot-middleware
 ```
 
 Next, enable hot reloading in your webpack config:
@@ -30,11 +28,11 @@ Next, enable hot reloading in your webpack config:
     Occurence ensures consistent build hashes, hot module replacement is
     somewhat self-explanatory, no errors is used to handle errors more cleanly.
 
- 3. Add `'webpack-hot-middleware/client'` into an array of the `entry` 
+ 3. Add `'@wrtools/webpack-hot-middleware/client'` into an array of the `entry` 
     object. For example:
     ```js
     entry: {
-        main: ['webpack-hot-middleware/client', './src/main.js']
+        main: ['@wrtools/webpack-hot-middleware/client', './src/main.js']
     }
     ```
     This connects to the server to receive notifications when the bundle
@@ -53,9 +51,9 @@ Now add the middleware into your server:
     }));
     ```
 
- 2. Add `webpack-hot-middleware` attached to the same compiler instance
+ 2. Add `@wrtools/webpack-hot-middleware` attached to the same compiler instance
     ```js
-    app.use(require("webpack-hot-middleware")(compiler));
+    app.use(require("@wrtools/webpack-hot-middleware")(compiler));
     ```
 
 And you're all set!
@@ -81,7 +79,7 @@ More to come soon, you'll have to mostly rely on the example for now.
 Configuration options can be passed to the client by adding querystring parameters to the path in the webpack config.
 
 ```js
-'webpack-hot-middleware/client?path=/__what&timeout=2000&overlay=false'
+'@wrtools/webpack-hot-middleware/client?path=/__what&timeout=2000&overlay=false'
 ```
 
 * **path** - The path which the middleware is serving the event stream on
@@ -107,7 +105,7 @@ var ansiColors = {
 var overlayStyles = {
   color: '#FF0000' // note the inclusion of "#" (these options would be the equivalent of div.style[option] = value)
 };
-var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true&ansiColors=' + encodeURIComponent(JSON.stringify(ansiColors)) + '&overlayStyles=' + encodeURIComponent(JSON.stringify(overlayStyles));
+var hotMiddlewareScript = '@wrtools/webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true&ansiColors=' + encodeURIComponent(JSON.stringify(ansiColors)) + '&overlayStyles=' + encodeURIComponent(JSON.stringify(overlayStyles));
 ```
 
 #### Middleware
@@ -115,7 +113,7 @@ var hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&tim
 Configuration options can be passed to the middleware by passing a second argument.
 
 ```js
-app.use(require("webpack-hot-middleware")(compiler, {
+app.use(require("@wrtools/webpack-hot-middleware")(compiler, {
     log: false,
     path: "/__what",
     heartbeat: 2000
@@ -145,14 +143,14 @@ module.exports = [
         name: 'mobile',
         entry: {
             vendor: 'vendor.js',
-            main: ['webpack-hot-middleware/client?name=mobile', 'mobile.js']
+            main: ['@wrtools/webpack-hot-middleware/client?name=mobile', 'mobile.js']
         }
     },
     {
         name: 'desktop',
         entry: {
             vendor: 'vendor.js',
-            main: ['webpack-hot-middleware/client?name=desktop', 'desktop.js']
+            main: ['@wrtools/webpack-hot-middleware/client?name=desktop', 'desktop.js']
         }
     }
 ]
@@ -176,11 +174,11 @@ can be used for Koa 2.x
 
 ### Use on browsers without EventSource
 
-If you want to use this module with browsers that don't support eventsource, you'll need to use a [polyfill](https://libraries.io/search?platforms=NPM&q=eventsource+polyfill). See [issue #11](https://github.com/webpack-contrib/webpack-hot-middleware/issues/11)
+If you want to use this module with browsers that don't support eventsource, you'll need to use a [polyfill](https://libraries.io/search?platforms=NPM&q=eventsource+polyfill). See [issue #11](https://github.com/webratio/webpack-hot-middleware/issues/11)
 
 ### Not receiving updates in client when using Gzip
 
-This is because gzip generally buffers the response, but the Server Sent Events event-stream expects to be able to send data to the client immediately. You should make sure gzipping isn't being applied to the event-stream. See [issue #10](https://github.com/webpack-contrib/webpack-hot-middleware/issues/10).
+This is because gzip generally buffers the response, but the Server Sent Events event-stream expects to be able to send data to the client immediately. You should make sure gzipping isn't being applied to the event-stream. See [issue #10](https://github.com/webratio/webpack-hot-middleware/issues/10).
 
 ### Use with auto-restarting servers
 
@@ -192,8 +190,8 @@ If you want to use [multiple entry points in your webpack config](https://webpac
 
 ```js
 entry: {
-    vendor: ['jquery', 'webpack-hot-middleware/client'],
-    index: ['./src/index', 'webpack-hot-middleware/client']
+    vendor: ['jquery', '@wrtools/webpack-hot-middleware/client'],
+    index: ['./src/index', '@wrtools/webpack-hot-middleware/client']
 }
 ```
 

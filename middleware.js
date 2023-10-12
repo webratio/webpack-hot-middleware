@@ -15,8 +15,8 @@ function webpackHotMiddleware(compiler, opts) {
   var closed = false;
 
   if (compiler.hooks) {
-    compiler.hooks.invalid.tap('webpack-hot-middleware', onInvalid);
-    compiler.hooks.done.tap('webpack-hot-middleware', onDone);
+    compiler.hooks.invalid.tap('@wrtools/webpack-hot-middleware', onInvalid);
+    compiler.hooks.done.tap('@wrtools/webpack-hot-middleware', onDone);
   } else {
     compiler.plugin('invalid', onInvalid);
     compiler.plugin('done', onDone);

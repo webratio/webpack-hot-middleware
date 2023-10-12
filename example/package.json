@@ -1,8 +1,7 @@
 {
-  "name": "webpack-hot-middleware-example",
+  "name": "@wrtools/webpack-hot-middleware-example",
   "version": "1.0.0",
-  "description": "Example of using webpack-hot-middleware",
-  "author": "Glen Mailer <glen@stainlessed.co.uk>",
+  "description": "Example of using @wrtools/webpack-hot-middleware",
   "license": "MIT",
   "dependencies": {
     "console-stamp": "^0.2.9",
@@ -10,7 +9,7 @@
     "morgan": "^1.10.0",
     "webpack": "^5.74.0",
     "webpack-dev-middleware": "^5.3.3",
-    "webpack-hot-middleware": "file:.."
+    "@wrtools/webpack-hot-middleware": "file:.."
   },
   "scripts": {
     "start:base": "WEBPACK_CONFIG=./webpack.config.js node server.js",

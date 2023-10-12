@@ -1,5 +1,5 @@
 {
-  "name": "webpack-hot-middleware",
+  "name": "@wrtools/webpack-hot-middleware",
   "version": "2.25.4",
   "description": "Webpack hot reloading you can attach to your own server",
   "keywords": [
@@ -21,9 +21,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/webpack-contrib/webpack-hot-middleware.git"
+    "url": "https://github.com/webratio/webpack-hot-middleware.git"
   },
-  "author": "Glen Mailer <glen@stainlessed.co.uk>",
   "license": "MIT",
   "dependencies": {
     "ansi-html-community": "0.0.8",
