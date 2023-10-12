@@ -13,6 +13,7 @@ var options = {
   overlayStyles: {},
   overlayWarnings: false,
   ansiColors: {},
+  hotOnly: false,
 };
 if (__resourceQuery) {
   var params = Array.from(new URLSearchParams(__resourceQuery.slice(1)));
@@ -73,6 +74,10 @@ function setOverrides(overrides) {
 
   if (overrides.overlayWarnings) {
     options.overlayWarnings = overrides.overlayWarnings == 'true';
+  }
+  
+  if(overrides.hotOnly) {
+    options.hotOnly = overrides.hotOnly == 'true';
   }
 }
 
@@ -234,7 +239,12 @@ function createReporter() {
   };
 }
 
-var processUpdate = require('./process-hot-only-update');
+var processUpdate;
+if(options.hotOnly) {
+  processUpdate = require('./process-hot-only-update');
+} else {
+  processUpdate = require('./process-update');
+}
 
 var customHandler;
 var subscribeAllHandler;
