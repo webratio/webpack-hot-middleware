@@ -9,10 +9,12 @@ function webpackHotMiddleware(compiler, opts) {
     typeof opts.log == 'undefined' ? console.log.bind(console) : opts.log;
   opts.path = opts.path || '/__webpack_hmr';
   opts.heartbeat = opts.heartbeat || 10 * 1000;
+  opts.clientEventsPath = opts.clientEventsPath || '/__webpack_hmr_client_events';
 
   var eventStream = createEventStream(opts.heartbeat);
   var latestStats = null;
   var closed = false;
+  var clientEventsHandler = createClientEventsHandler(opts.onReloadNeeded);
 
   if (compiler.hooks) {
     compiler.hooks.invalid.tap('@wrtools/webpack-hot-middleware', onInvalid);
@@ -33,21 +35,25 @@ function webpackHotMiddleware(compiler, opts) {
     latestStats = statsResult;
     publishStats('built', latestStats, eventStream, opts.log);
   }
-  var middleware = function (req, res, next) {
+  var middleware = function(req, res, next) {
     if (closed) return next();
-    if (!pathMatch(req.url, opts.path)) return next();
-    eventStream.handler(req, res);
-    if (latestStats) {
-      // Explicitly not passing in `log` fn as we don't want to log again on
-      // the server
-      publishStats('sync', latestStats, eventStream);
+    if (pathMatch(req.url, opts.path)) {
+      eventStream.handler(req, res);
+      if (latestStats) {
+        // Explicitly not passing in `log` fn as we don't want to log again on
+        // the server
+        publishStats('sync', latestStats, eventStream);
+      }
+    } else if (pathMatch(req.url, opts.clientEventsPath) && req.method === 'POST') {
+      clientEventsHandler.handle(req, res);
     }
+    return next();
   };
-  middleware.publish = function (payload) {
+  middleware.publish = function(payload) {
     if (closed) return;
     eventStream.publish(payload);
   };
-  middleware.close = function () {
+  middleware.close = function() {
     if (closed) return;
     // Can't remove compiler plugins, so we just set a flag and noop if closed
     // https://github.com/webpack/tapable/issues/32#issuecomment-350644466
@@ -62,24 +68,24 @@ function createEventStream(heartbeat) {
   var clientId = 0;
   var clients = {};
   function everyClient(fn) {
-    Object.keys(clients).forEach(function (id) {
+    Object.keys(clients).forEach(function(id) {
       fn(clients[id]);
     });
   }
   var interval = setInterval(function heartbeatTick() {
-    everyClient(function (client) {
+    everyClient(function(client) {
       client.write('data: \uD83D\uDC93\n\n');
     });
   }, heartbeat).unref();
   return {
-    close: function () {
+    close: function() {
       clearInterval(interval);
-      everyClient(function (client) {
+      everyClient(function(client) {
         if (!client.finished) client.end();
       });
       clients = {};
     },
-    handler: function (req, res) {
+    handler: function(req, res) {
       var headers = {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'text/event-stream;charset=utf-8',
@@ -101,13 +107,13 @@ function createEventStream(heartbeat) {
       res.write('\n');
       var id = clientId++;
       clients[id] = res;
-      req.on('close', function () {
+      req.on('close', function() {
         if (!res.finished) res.end();
         delete clients[id];
       });
     },
-    publish: function (payload) {
-      everyClient(function (client) {
+    publish: function(payload) {
+      everyClient(function(client) {
         client.write('data: ' + JSON.stringify(payload) + '\n\n');
       });
     },
@@ -131,7 +137,7 @@ function publishStats(action, statsResult, eventStream, log) {
   // multi-compiler stats have stats for each child compiler
   // see https://github.com/webpack/webpack/blob/main/lib/MultiCompiler.js#L97
   if (statsResult.stats) {
-    var processed = statsResult.stats.map(function (stats) {
+    var processed = statsResult.stats.map(function(stats) {
       return extractBundles(normalizeStats(stats, statsOptions));
     });
 
@@ -140,7 +146,7 @@ function publishStats(action, statsResult, eventStream, log) {
     bundles = extractBundles(normalizeStats(statsResult, statsOptions));
   }
 
-  bundles.forEach(function (stats) {
+  bundles.forEach(function(stats) {
     var name = stats.name || '';
 
     // Fallback to compilation name in case of 1 bundle (if it exists)
@@ -151,11 +157,11 @@ function publishStats(action, statsResult, eventStream, log) {
     if (log) {
       log(
         'webpack built ' +
-          (name ? name + ' ' : '') +
-          stats.hash +
-          ' in ' +
-          stats.time +
-          'ms'
+        (name ? name + ' ' : '') +
+        stats.hash +
+        ' in ' +
+        stats.time +
+        'ms'
       );
     }
 
@@ -181,7 +187,7 @@ function formatErrors(errors) {
   }
 
   // Convert webpack@5 error info into a backwards-compatible flat string
-  return errors.map(function (error) {
+  return errors.map(function(error) {
     return error.moduleName + ' ' + error.loc + '\n' + error.message;
   });
 }
@@ -212,8 +218,51 @@ function extractBundles(stats) {
 
 function buildModuleMap(modules) {
   var map = {};
-  modules.forEach(function (module) {
+  modules.forEach(function(module) {
     map[module.id] = module.name;
   });
   return map;
+}
+
+function createClientEventsHandler(onReloadNeededCb) {
+  function sendResponse(res) {
+    var headers = {
+      'Access-Control-Allow-Origin': '*',
+    };
+    res.writeHead(200, headers);
+    res.write('\n');
+    res.send();
+    res.end();
+  }
+  function sendErrorResponse(res, status, error) {
+    var headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    };
+    res.writeHead(status, headers);
+    res.write('\n');
+    res.send(JSON.stringify({ error }));
+    res.end();
+  }
+  return {
+    handle: function(req, res) {
+      var body = '';
+      req.on('data', (chunk) => body += chunk);
+      req.on('end', () => {
+        try {
+          var data = JSON.parse(body);
+          if (data.event === 'ReloadNeeded') {
+            sendResponse(res);
+            if (onReloadNeededCb) {
+              onReloadNeededCb();
+            }
+          } else {
+            sendErrorResponse(res, 400, "Bad request: invalid event data");
+          }
+        } catch (err) {
+          sendErrorResponse(res, 400, "Bad request: body is not a valid json");
+        }
+      });
+    }
+  }
 }

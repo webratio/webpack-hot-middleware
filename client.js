@@ -14,6 +14,7 @@ var options = {
   overlayWarnings: false,
   ansiColors: {},
   hotOnly: false,
+  clientEventsPath: '/__webpack_hmr_client_events',
 };
 if (__resourceQuery) {
   var params = Array.from(new URLSearchParams(__resourceQuery.slice(1)));
@@ -79,6 +80,8 @@ function setOverrides(overrides) {
   if(overrides.hotOnly) {
     options.hotOnly = overrides.hotOnly == 'true';
   }
+  
+  if (overrides.clientEventsPath) options.clientEventsPath = overrides.clientEventsPath;
 }
 
 function EventSourceWrapper() {

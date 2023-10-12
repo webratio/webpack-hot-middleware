@@ -40,7 +40,7 @@ module.exports = function(hash, moduleMap, options) {
           check();
         }
 
-        logUpdates(updatedModules, renewedModules);
+        logUpdates(updatedModules, updatedModules);
       })
       .catch(function(err) {
         var status = module.hot.status();
@@ -94,6 +94,19 @@ module.exports = function(hash, moduleMap, options) {
         console.warn("[HMR] Reloading page");
       }
       window.location.reload();
+    } else {
+      if (options.warn) { 
+        console.warn("[HMR] Sending reload needed message");
+      }
+      fetch(options.clientEventsPath, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: "ReloadNeeded",
+        })
+      });
     }
   }
 };
