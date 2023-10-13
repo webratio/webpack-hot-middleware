@@ -1,6 +1,6 @@
 {
   "name": "@wrtools/webpack-hot-middleware-example",
-  "version": "1.0.0",
+  "version": "1.0.1-wr.1",
   "description": "Example of using @wrtools/webpack-hot-middleware",
   "license": "MIT",
   "dependencies": {
