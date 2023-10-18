@@ -63,9 +63,12 @@ function setOverrides(overrides) {
     options.log = false;
     options.warn = false;
   }
+  
+  if (overrides.clientEventsPath) options.clientEventsPath = overrides.clientEventsPath;
 
   if (overrides.dynamicPublicPath) {
     options.path = __webpack_public_path__ + options.path;
+    options.clientEventsPath = __webpack_public_path__ + options.clientEventsPath;
   }
 
   if (overrides.ansiColors)
@@ -81,7 +84,6 @@ function setOverrides(overrides) {
     options.hotOnly = overrides.hotOnly == 'true';
   }
   
-  if (overrides.clientEventsPath) options.clientEventsPath = overrides.clientEventsPath;
 }
 
 function EventSourceWrapper() {
