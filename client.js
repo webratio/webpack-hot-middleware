@@ -9,7 +9,7 @@ var options = {
   log: true,
   warn: true,
   name: '',
-  autoConnect: true,
+  autoConnect: false,
   overlayStyles: {},
   overlayWarnings: false,
   ansiColors: {},
