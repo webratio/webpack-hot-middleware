@@ -44,7 +44,7 @@ function webpackHotMiddleware(compiler, opts) {
         // the server
         publishStats('sync', latestStats, eventStream);
       }
-    } else if (pathMatch(req.url, opts.clientEventsPath) && req.method === 'POST') {
+    } else if (pathMatch(req.url, opts.clientEventsPath)) {
       clientEventsHandler.handle(req, res);
     }
     return next();
@@ -228,6 +228,7 @@ function createClientEventsHandler(onReloadNeededCb) {
   function sendResponse(res) {
     var headers = {
       'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'content-type',
     };
     res.writeHead(200, headers);
     res.write('\n');
@@ -246,6 +247,12 @@ function createClientEventsHandler(onReloadNeededCb) {
   }
   return {
     handle: function(req, res) {
+      if(req.method === 'OPTIONS') {
+        return sendResponse(res);
+      }
+      if(req.method !== 'POST') {
+        return sendErrorResponse(res, 404, "Not found");
+      }
       var body = '';
       req.on('data', (chunk) => body += chunk);
       req.on('end', () => {
