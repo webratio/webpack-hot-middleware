@@ -1,6 +1,6 @@
 {
   "name": "@wrtools/webpack-hot-middleware",
-  "version": "2.26.0-wr.2",
+  "version": "2.26.0-wr.3",
   "description": "Webpack hot reloading you can attach to your own server",
   "keywords": [
     "webpack",
