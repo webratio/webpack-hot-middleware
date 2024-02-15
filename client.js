@@ -26,6 +26,11 @@ if (__resourceQuery) {
   setOverrides(overrides);
 }
 
+let suspended = false;
+let suspendedUpdates = 0;
+
+let lastSyncData = undefined;
+
 if (typeof window === 'undefined') {
   // do nothing
 } else if (typeof window.EventSource === 'undefined') {
@@ -295,7 +300,12 @@ function processMessage(obj) {
         }
       }
       if (applyUpdate) {
-        processUpdate(obj.hash, obj.modules, options);
+        if (!suspended) {
+          processUpdate(obj.hash, obj.modules, options);
+        } else {
+          lastSyncData = obj;
+          suspendedUpdates = suspendedUpdates + 1;
+        }
       }
       break;
     default:
@@ -307,6 +317,31 @@ function processMessage(obj) {
   if (subscribeAllHandler) {
     subscribeAllHandler(obj);
   }
+}
+
+function suspend() {
+  suspended = true;
+}
+
+function resume() {
+  if(lastSyncData) {
+    if(suspendedUpdates <= 1) { // TODO Evaluate to make it configurable
+      processUpdate(lastSyncData.hash, lastSyncData.modules, options);
+    } else {
+      fetch(options.clientEventsPath, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: "ReloadNeeded",
+        })
+      });
+    }
+  }
+  lastSyncData = undefined;
+  suspended = false;
+  suspendedUpdates = 0;
 }
 
 if (module) {
@@ -321,5 +356,7 @@ if (module) {
       if (reporter) reporter.useCustomOverlay(customOverlay);
     },
     setOptionsAndConnect: setOptionsAndConnect,
+    suspend: suspend,
+    resume: resume,
   };
 }
